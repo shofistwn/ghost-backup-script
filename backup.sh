@@ -80,7 +80,7 @@ fi
 
 # Upload Backup to R2
 echo "🔄 Uploading backup to R2..." | tee -a "$LOG_FILE"
-~/bin/rclone copy "$BACKUP_FOLDER" "$RCLONE_REMOTE/${TIMESTAMP}" --progress >> "$LOG_FILE" 2>&1
+rclone copy "$BACKUP_FOLDER" "$RCLONE_REMOTE/${TIMESTAMP}" --progress >> "$LOG_FILE" 2>&1
 if [ $? -eq 0 ]; then
     echo "✅ Upload to R2 completed successfully." | tee -a "$LOG_FILE"
 else
@@ -94,15 +94,15 @@ fi
 # Cleanup Old Backups in R2
 echo "🔄 Cleaning up old backups in R2..." | tee -a "$LOG_FILE"
 
-RCLONE_BACKUP_COUNT=$(~/bin/rclone lsf "$RCLONE_REMOTE" | wc -l)
+RCLONE_BACKUP_COUNT=$(rclone lsf "$RCLONE_REMOTE" | wc -l)
 
 if [ $RCLONE_BACKUP_COUNT -gt 3 ]; then
     TO_REMOVE_COUNT=$((RCLONE_BACKUP_COUNT - 3))
     
     echo "❌ Removing $TO_REMOVE_COUNT oldest backups from R2..." | tee -a "$LOG_FILE"
-    ~/bin/rclone lsf "$RCLONE_REMOTE" | head -n $TO_REMOVE_COUNT | while read -r OLDEST_BACKUP_R2; do
+    rclone lsf "$RCLONE_REMOTE" | head -n $TO_REMOVE_COUNT | while read -r OLDEST_BACKUP_R2; do
         echo "❌ Removing old backup from R2: ${OLDEST_BACKUP_R2}" | tee -a "$LOG_FILE"
-        ~/bin/rclone delete "$RCLONE_REMOTE/$OLDEST_BACKUP_R2" >> "$LOG_FILE" 2>&1
+        rclone delete "$RCLONE_REMOTE/$OLDEST_BACKUP_R2" >> "$LOG_FILE" 2>&1
         
         if [ $? -ne 0 ]; then
             echo "❌ Failed to remove old backup in R2! Check the logs for errors." | tee -a "$LOG_FILE"
